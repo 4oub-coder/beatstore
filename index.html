@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,7 +151,7 @@
     }
 
     /* Pricing */
-    .beat-pricing { padding: 12px 20px 20px; display: flex; gap: 10px; }
+    .beat-pricing { padding: 12px 20px 20px; display: flex; gap: 8px; flex-wrap: wrap; }
     .price-btn {
       flex: 1; padding: 12px 0; text-align: center;
       border-radius: 8px; text-decoration: none;
@@ -163,6 +164,10 @@
       background: transparent; border: 1.5px solid #4090e8; color: #4090e8;
     }
     .price-lease:hover { background: #4090e822; }
+    .price-wav {
+      background: #9060d018; border: 1.5px solid #9060d0; color: #9060d0;
+    }
+    .price-wav:hover { background: #9060d030; }
     .price-exclusive {
       background: #f0d06018; border: 1.5px solid #f0d060; color: #f0d060;
     }
@@ -307,33 +312,37 @@
   const BEATS = [
     {
       id: 1,
-      title: "Midnight Velvet",
-      bpm: 88, key: "C minor", vibe: "R&B / Emotional", duration: "3:24",
-      audioUrl: "", // add your preview MP3 URL
-      leasePrice: 35, exclusivePrice: 150,
-      leaseUrl: "https://gumroad.com/l/your-link-1",
-      exclusiveUrl: "https://gumroad.com/l/your-link-1-exclusive",
-      tags: ["Singer", "R&B"],
+      title: "Midnight Drive",
+      bpm: 88, key: "F minor", vibe: "Car Vibes / Luxury", duration: "1:36",
+      audioUrl: "",
+      leasePrice: 35, wavPrice: 65, exclusivePrice: 500,
+      leaseUrl: "https://businb.gumroad.com/l/emnwk",
+      wavUrl: "https://businb.gumroad.com/l/iprpcc",
+      exclusiveUrl: "https://businb.gumroad.com/l/emnwk",
+      tags: ["Singer", "Rapper", "Cinematic"],
+      available: true,
     },
     {
       id: 2,
-      title: "Sahara Gold",
-      bpm: 95, key: "A minor", vibe: "Cinematic / Soul", duration: "2:58",
+      title: "Hollywood Rise",
+      bpm: 88, key: "F minor", vibe: "Pop / Rihanna Style", duration: "3:10",
       audioUrl: "",
-      leasePrice: 35, exclusivePrice: 175,
-      leaseUrl: "https://gumroad.com/l/your-link-2",
-      exclusiveUrl: "https://gumroad.com/l/your-link-2-exclusive",
-      tags: ["Singer", "Rapper", "Cinematic"],
+      leasePrice: 35, wavPrice: 65, exclusivePrice: 500,
+      leaseUrl: "https://businb.gumroad.com/l/obpkpo",
+      wavUrl: "https://businb.gumroad.com/l/obpkpo",
+      exclusiveUrl: "https://businb.gumroad.com/l/obpkpo",
+      tags: ["Singer", "Rapper", "Pop"],
+      available: true,
     },
     {
       id: 3,
-      title: "Hollywood Rise",
-      bpm: 92, key: "F minor", vibe: "Pop / Rihanna Style", duration: "3:10",
+      title: "Sahara Gold",
+      bpm: 95, key: "A minor", vibe: "Cinematic / Soul", duration: "2:58",
       audioUrl: "",
-      leasePrice: 40, exclusivePrice: 200,
-      leaseUrl: "https://gumroad.com/l/your-link-3",
-      exclusiveUrl: "https://gumroad.com/l/your-link-3-exclusive",
-      tags: ["Singer", "Rapper", "Pop"],
+      leasePrice: 35, wavPrice: 65, exclusivePrice: 500,
+      leaseUrl: "", wavUrl: "", exclusiveUrl: "",
+      tags: ["Singer", "Rapper", "Cinematic"],
+      available: false,
     },
   ];
 
@@ -377,12 +386,21 @@
           ${beat.tags.map(t => `<span class="tag">${t}</span>`).join('')}
         </div>
         <div class="beat-pricing">
+          ${beat.available ? `
           <a class="price-btn price-lease" href="${beat.leaseUrl}" target="_blank">
-            LEASE<span>€${beat.leasePrice}</span>
+            MP3 LEASE<span>€${beat.leasePrice}</span>
+          </a>
+          <a class="price-btn price-wav" href="${beat.wavUrl}" target="_blank">
+            WAV LEASE<span>€${beat.wavPrice}</span>
           </a>
           <a class="price-btn price-exclusive" href="${beat.exclusiveUrl}" target="_blank">
-            EXCLUSIVE<span>€${beat.exclusivePrice}</span>
+            EXCLUSIVE<span>SERIOUS OFFERS</span>
           </a>
+          ` : `
+          <div style="width:100%;text-align:center;padding:16px 0;border:1.5px solid #2a3a5a;border-radius:8px;color:#4a6a9a;font-size:13px;letter-spacing:3px;">
+            COMING SOON
+          </div>
+          `}
         </div>
       </div>
     `).join('');
