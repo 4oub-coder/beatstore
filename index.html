@@ -493,7 +493,15 @@
         return;
       }
     }
-    // Beat preview finished (or no valid next step) — reset
+    if (playingPhase === 'beat' && playingId !== null) {
+      // Loop the beat preview — replay from the start, re-arm the mid-track tag drop
+      audio.currentTime = 0;
+      audio.volume = 1;
+      audio._midTagFired = false;
+      audio.play();
+      return;
+    }
+    // Fallback — nothing playing, reset everything
     audio.removeEventListener('timeupdate', handleMidTagCheck);
     audio.volume = 1;
     playingId = null;
