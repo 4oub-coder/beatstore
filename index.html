@@ -305,6 +305,7 @@
 </footer>
 
 <audio id="audioPlayer" onended="handleAudioEnded()"></audio>
+<audio id="midTagPlayer"></audio>
 
 <script>
   // ── Voice tag — plays automatically before every preview ──
@@ -315,8 +316,9 @@
     {
       id: 1,
       title: "Midnight Drive",
-      bpm: 88, key: "F minor", vibe: "Car Vibes / Luxury", duration: "1:36",
+      bpm: 88, key: "F minor", vibe: "Car Vibes / Luxury", duration: "0:54",
       audioUrl: "18-7_1.mp3",
+      midTagAt: 21,  // seconds — tag drops in again here, at the biggest energy jump
       leasePrice: 35, wavPrice: 65, exclusivePrice: 500,
       leaseUrl: "https://businb.gumroad.com/l/emnwk",
       wavUrl: "https://businb.gumroad.com/l/iprpcc",
@@ -329,6 +331,7 @@
       title: "Hollywood Rise",
       bpm: 88, key: "F minor", vibe: "Pop / Rihanna Style", duration: "3:10",
       audioUrl: "",
+      midTagAt: null,
       leasePrice: 35, wavPrice: 65, exclusivePrice: 500,
       leaseUrl: "https://businb.gumroad.com/l/obpkpo",
       wavUrl: "https://businb.gumroad.com/l/obpkpo",
@@ -341,6 +344,7 @@
       title: "Raw Motion",
       bpm: 95, key: "A minor", vibe: "Freestyle / Raw Energy", duration: "2:00",
       audioUrl: "",
+      midTagAt: null,
       leasePrice: 35, wavPrice: 65, exclusivePrice: 500,
       leaseUrl: "https://businb.gumroad.com/l/pnphyz",
       wavUrl: "",
@@ -422,11 +426,16 @@
     const beat = BEATS.find(b => b.id === id);
     if (!beat || !beat.audioUrl) return;
     const audio = document.getElementById('audioPlayer');
+    const midTag = document.getElementById('midTagPlayer');
 
     if (playingId === id) {
       // Already playing this beat (tag or beat phase) — stop it
       audio.pause();
       audio.currentTime = 0;
+      midTag.pause();
+      midTag.currentTime = 0;
+      audio.volume = 1;
+      audio.removeEventListener('timeupdate', handleMidTagCheck);
       playingId = null;
       playingPhase = null;
       renderBeats();
@@ -436,14 +445,42 @@
     // Start fresh: play the voice tag first, then the beat preview
     playingId = id;
     playingPhase = 'tag';
+    audio.volume = 1;
     audio.src = VOICE_TAG_URL;
     audio.play().catch(() => {
       // Tag failed to load (e.g. not uploaded yet) — skip straight to the beat
-      playingPhase = 'beat';
-      audio.src = beat.audioUrl;
-      audio.play();
+      startBeatPlayback(beat, audio);
     });
     renderBeats();
+  }
+
+  function startBeatPlayback(beat, audio) {
+    playingPhase = 'beat';
+    audio.src = beat.audioUrl;
+    audio.play();
+    // Watch for the mid-track tag drop point, if this beat has one set
+    if (beat.midTagAt != null) {
+      audio.removeEventListener('timeupdate', handleMidTagCheck);
+      audio._midTagFired = false;
+      audio.addEventListener('timeupdate', handleMidTagCheck);
+    }
+  }
+
+  function handleMidTagCheck() {
+    const audio = document.getElementById('audioPlayer');
+    const midTag = document.getElementById('midTagPlayer');
+    const beat = BEATS.find(b => b.id === playingId);
+    if (!beat || beat.midTagAt == null || audio._midTagFired) return;
+
+    if (audio.currentTime >= beat.midTagAt) {
+      audio._midTagFired = true;
+      // Duck the beat and drop the tag over it, then restore volume
+      audio.volume = 0.25;
+      midTag.src = VOICE_TAG_URL;
+      midTag.currentTime = 0;
+      midTag.play();
+      midTag.onended = () => { audio.volume = 1; };
+    }
   }
 
   function handleAudioEnded() {
@@ -451,14 +488,14 @@
     if (playingPhase === 'tag' && playingId !== null) {
       const beat = BEATS.find(b => b.id === playingId);
       if (beat) {
-        playingPhase = 'beat';
-        audio.src = beat.audioUrl;
-        audio.play();
+        startBeatPlayback(beat, audio);
         renderBeats();
         return;
       }
     }
     // Beat preview finished (or no valid next step) — reset
+    audio.removeEventListener('timeupdate', handleMidTagCheck);
+    audio.volume = 1;
     playingId = null;
     playingPhase = null;
     renderBeats();
