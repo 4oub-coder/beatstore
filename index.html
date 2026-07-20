@@ -304,9 +304,14 @@
   @THEMCSAPP · MADE WITH MCS PRO
 </footer>
 
-<audio id="audioPlayer" onended="stopPlay()"></audio>
+<audio id="audioPlayer" onended="handleAudioEnded()"></audio>
 
 <script>
+  // ── Voice tag — plays automatically before every preview ──
+  // Upload your rendered tag mp3 to an "audio" folder in this repo,
+  // e.g. audio/mcs-voicetag-final.mp3
+  const VOICE_TAG_URL = "audio/mcs-voicetag-final.mp3";
+
   // ── Beat data — fill in your real Gumroad links and audio URLs ──
   const BEATS = [
     {
@@ -349,6 +354,7 @@
 
   let currentFilter = "All";
   let playingId = null;
+  let playingPhase = null; // 'tag' | 'beat'
 
   function getWaveBars(id) {
     const heights = [8,14,22,18,28,12,20,26,16,24,10,18,28,14,20,22,16,26,12,18,24,20,14,28,10,22,16,18,24,12,26,20,14,18,22,16,28,10,20,24];
@@ -369,7 +375,7 @@
           <div class="beat-top">
             <div>
               <div class="beat-title">${beat.title}</div>
-              <div class="beat-vibe">${beat.vibe}</div>
+              <div class="beat-vibe">${playingId === beat.id && playingPhase === 'tag' ? 'MCS — intro tag...' : beat.vibe}</div>
             </div>
             <button class="play-btn ${playingId === beat.id ? 'playing' : ''} ${!beat.audioUrl ? 'disabled' : ''}"
               onclick="togglePlay(${beat.id})" ${!beat.audioUrl ? 'disabled' : ''}>
@@ -418,19 +424,45 @@
     const beat = BEATS.find(b => b.id === id);
     if (!beat || !beat.audioUrl) return;
     const audio = document.getElementById('audioPlayer');
+
     if (playingId === id) {
+      // Already playing this beat (tag or beat phase) — stop it
       audio.pause();
+      audio.currentTime = 0;
       playingId = null;
-    } else {
+      playingPhase = null;
+      renderBeats();
+      return;
+    }
+
+    // Start fresh: play the voice tag first, then the beat preview
+    playingId = id;
+    playingPhase = 'tag';
+    audio.src = VOICE_TAG_URL;
+    audio.play().catch(() => {
+      // Tag failed to load (e.g. not uploaded yet) — skip straight to the beat
+      playingPhase = 'beat';
       audio.src = beat.audioUrl;
       audio.play();
-      playingId = id;
-    }
+    });
     renderBeats();
   }
 
-  function stopPlay() {
+  function handleAudioEnded() {
+    const audio = document.getElementById('audioPlayer');
+    if (playingPhase === 'tag' && playingId !== null) {
+      const beat = BEATS.find(b => b.id === playingId);
+      if (beat) {
+        playingPhase = 'beat';
+        audio.src = beat.audioUrl;
+        audio.play();
+        renderBeats();
+        return;
+      }
+    }
+    // Beat preview finished (or no valid next step) — reset
     playingId = null;
+    playingPhase = null;
     renderBeats();
   }
 
