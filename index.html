@@ -129,15 +129,30 @@
     /* Waveform */
     .waveform {
       height: 36px; background: rgba(26,48,96,0.3);
-      border-radius: 4px; margin-bottom: 10px;
+      border-radius: 4px; margin-bottom: 4px;
       display: flex; align-items: center; gap: 2px;
       padding: 0 6px; overflow: hidden;
+      position: relative; cursor: pointer;
     }
+    .waveform.disabled { cursor: not-allowed; }
     .wave-bar {
       width: 3px; border-radius: 2px; background: #2a4a7a;
       transition: background 0.3s;
+      position: relative; z-index: 1;
     }
     .beat-card.playing .wave-bar { background: #f0d06088; }
+    .progress-fill {
+      position: absolute; top: 0; left: 0; height: 100%;
+      background: rgba(240,208,96,0.16);
+      border-right: 1.5px solid #f0d060;
+      pointer-events: none; z-index: 0;
+      width: 0%; transition: width 0.1s linear;
+    }
+    .time-display {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: #4a6a8a; margin-bottom: 10px;
+      font-variant-numeric: tabular-nums;
+    }
 
     .beat-meta { display: flex; gap: 14px; font-size: 11px; color: #4a6a8a; }
 
@@ -305,7 +320,7 @@
   @THEMCSAPP · MADE WITH MCS PRO
 </footer>
 
-<audio id="audioPlayer" onended="handleAudioEnded()"></audio>
+<audio id="audioPlayer" onended="handleAudioEnded()" ontimeupdate="updateProgressUI()"></audio>
 <audio id="midTagPlayer"></audio>
 
 <script>
@@ -379,6 +394,58 @@
     ).join('');
   }
 
+  function formatTime(seconds) {
+    if (!isFinite(seconds) || seconds < 0) seconds = 0;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2,'0')}`;
+  }
+
+  function getProgressPct(id) {
+    if (playingId !== id || playingPhase !== 'beat') return 0;
+    const audio = document.getElementById('audioPlayer');
+    if (!audio.duration) return 0;
+    return (audio.currentTime / audio.duration) * 100;
+  }
+
+  function getCurrentTimeLabel(id) {
+    if (playingId !== id || playingPhase !== 'beat') return '0:00';
+    const audio = document.getElementById('audioPlayer');
+    return formatTime(audio.currentTime);
+  }
+
+  function seekTrack(event, id) {
+    // Only allow seeking while this beat is actively playing its preview
+    if (playingId !== id || playingPhase !== 'beat') return;
+    const audio = document.getElementById('audioPlayer');
+    if (!audio.duration) return;
+    const waveform = document.getElementById(`waveform-${id}`);
+    const rect = waveform.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+    audio.currentTime = ratio * audio.duration;
+    // Re-arm the mid-track tag drop if we've seeked past or before it
+    const beat = BEATS.find(b => b.id === id);
+    if (beat && beat.midTagAt != null) {
+      audio._midTagFired = audio.currentTime >= beat.midTagAt;
+    }
+    updateProgressUI();
+  }
+
+  function updateProgressUI() {
+    // Lightweight live update — moves the progress bar + time label
+    // without a full re-render, so it stays smooth while playing
+    if (playingId === null || playingPhase !== 'beat') return;
+    const audio = document.getElementById('audioPlayer');
+    const fill = document.getElementById(`progress-${playingId}`);
+    const timeLbl = document.getElementById(`time-${playingId}`);
+    if (fill && audio.duration) {
+      fill.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+    }
+    if (timeLbl) {
+      timeLbl.textContent = formatTime(audio.currentTime);
+    }
+  }
+
   function renderBeats() {
     const grid = document.getElementById('beatsGrid');
     const filtered = currentFilter === 'All'
@@ -398,7 +465,15 @@
               ${playingId === beat.id ? '⏸' : '▶'}
             </button>
           </div>
-          <div class="waveform">${getWaveBars(beat.id)}</div>
+          <div class="waveform ${!beat.audioUrl ? 'disabled' : ''}" id="waveform-${beat.id}"
+               onclick="seekTrack(event, ${beat.id})">
+            <div class="progress-fill" id="progress-${beat.id}" style="width:${getProgressPct(beat.id)}%"></div>
+            ${getWaveBars(beat.id)}
+          </div>
+          <div class="time-display">
+            <span id="time-${beat.id}">${getCurrentTimeLabel(beat.id)}</span>
+            <span>${beat.duration}</span>
+          </div>
           <div class="beat-meta">
             <span>♩ ${beat.bpm} BPM</span>
             <span>🎵 ${beat.key}</span>
