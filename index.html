@@ -226,12 +226,91 @@
     }
     .dm-btn:hover { background: #f0d06018; }
 
+    /* Mini Mastering */
+    .master-section {
+      padding: 60px 32px;
+      border-top: 1px solid #80b8e811;
+      text-align: center;
+    }
+    .master-title { font-size: 32px; color: #f0d060; letter-spacing: 3px; margin-bottom: 12px; }
+    .master-text { font-size: 14px; color: #6a9ac8; max-width: 500px; margin: 0 auto 28px; line-height: 1.7; }
+    .master-box {
+      max-width: 460px; margin: 0 auto;
+      background: rgba(26,48,96,0.25); border: 1px solid #1a3060;
+      border-radius: 10px; padding: 28px 24px;
+    }
+    .master-upload {
+      display: inline-block; padding: 12px 28px;
+      border: 1.5px dashed #4a6a9a; border-radius: 8px;
+      color: #80b8e8; font-size: 12px; letter-spacing: 2px;
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Courier New', monospace;
+    }
+    .master-upload:hover { border-color: #f0d060; color: #f0d060; }
+    .master-status {
+      font-size: 11px; color: #4a6a8a; margin-top: 14px;
+      letter-spacing: 1px; min-height: 16px;
+    }
+    .master-controls {
+      display: none; margin-top: 20px;
+    }
+    .master-controls.visible { display: block; }
+    .master-toggle {
+      display: flex; gap: 0; justify-content: center;
+      border: 1px solid #4a6a9a; border-radius: 24px;
+      overflow: hidden; width: fit-content; margin: 0 auto 16px;
+    }
+    .master-toggle-btn {
+      padding: 9px 22px; font-size: 11px; letter-spacing: 2px;
+      background: transparent; color: #6a9ac8; border: none;
+      cursor: pointer; font-family: 'Courier New', monospace;
+      transition: all 0.2s;
+    }
+    .master-toggle-btn.active { background: #f0d060; color: #0a0a14; font-weight: bold; }
+    .master-playbar {
+      display: flex; align-items: center; gap: 12px; justify-content: center;
+    }
+    .master-play-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1.5px solid #f0d060; background: transparent; color: #f0d060;
+      cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .master-play-btn:hover { background: #f0d06018; }
+    .master-download {
+      display: block; margin-top: 18px; font-size: 11px;
+      color: #4a6a8a; text-decoration: none; letter-spacing: 1.5px;
+    }
+    .master-download:hover { color: #f0d060; }
+    .master-disclaimer {
+      font-size: 10px; color: #2a4a7a; margin-top: 16px; line-height: 1.6;
+    }
+
     /* Footer */
     footer {
       border-top: 2px solid #f0d06033;
       padding: 24px 32px; text-align: center;
       font-size: 11px; color: #2a4a7a; letter-spacing: 3px;
     }
+
+    .mcs-promo {
+      text-align: center; padding: 22px 20px;
+      border-top: 1px solid #1a3060;
+    }
+    .mcs-promo-tagline {
+      font-size: 12px; color: #4a6a9a; letter-spacing: 1.5px;
+      margin-bottom: 4px; line-height: 1.6;
+    }
+    .mcs-promo-sub {
+      font-size: 11px; color: #2a4a7a; letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .mcs-promo-link {
+      font-size: 13px; color: #f0d060; text-decoration: none;
+      letter-spacing: 3px; font-weight: bold;
+      border-bottom: 1px solid transparent; transition: border-color 0.2s;
+    }
+    .mcs-promo-link:hover { border-color: #f0d060; }
 
     @media (max-width: 600px) {
       .hero-title { font-size: 40px; }
@@ -316,12 +395,55 @@
   </a>
 </section>
 
+<section class="master-section">
+  <p class="section-eyebrow">FREE PREVIEW</p>
+  <h2 class="master-title">TRY MINI MASTERING.</h2>
+  <p class="master-text">
+    Upload a rough mix and hear an instant, browser-based mini master —
+    EQ, compression, limiting and loudness in one click. No upload to
+    a server, everything happens right here in your browser.
+  </p>
+  <div class="master-box">
+    <label class="master-upload" id="masterUploadLabel">
+      ⬆ CHOOSE AUDIO FILE
+      <input type="file" id="masterFileInput" accept="audio/*" style="display:none;" onchange="handleMasterUpload(event)">
+    </label>
+    <div class="master-status" id="masterStatus"></div>
+
+    <div class="master-controls" id="masterControls">
+      <div class="master-toggle">
+        <button class="master-toggle-btn active" id="btnOriginal" onclick="setMasterMode('original')">ORIGINAL</button>
+        <button class="master-toggle-btn" id="btnMastered" onclick="setMasterMode('mastered')">MASTERED</button>
+      </div>
+      <div class="master-playbar">
+        <button class="master-play-btn" id="masterPlayBtn" onclick="toggleMasterPlay()">▶</button>
+        <span class="master-status" id="masterTimeLabel">0:00 / 0:00</span>
+      </div>
+      <a class="master-download" id="masterDownloadLink" href="#" download="mastered.wav">⬇ DOWNLOAD MASTERED WAV</a>
+    </div>
+
+    <p class="master-disclaimer">
+      A quick reference master, not a replacement for a full manual
+      mix/master service. Want the real thing? DM on Instagram.
+    </p>
+  </div>
+</section>
+
+<div class="mcs-promo">
+  <p class="mcs-promo-tagline">Work Smarter. Sound Bigger. Finish Faster.</p>
+  <p class="mcs-promo-sub">The music production toolkit behind these beats.</p>
+  <a class="mcs-promo-link" href="https://businb.gumroad.com/l/qlupcx" target="_blank">Get MCS →</a>
+</div>
+
 <footer>
   @THEMCSAPP · MADE WITH MCS PRO
 </footer>
 
 <audio id="audioPlayer" onended="handleAudioEnded()" ontimeupdate="updateProgressUI()"></audio>
 <audio id="midTagPlayer"></audio>
+<audio id="masterAudioPlayer"
+       ontimeupdate="updateMasterTimeLabel()"
+       onended="document.getElementById('masterPlayBtn').textContent='▶'"></audio>
 
 <script>
   // ── Voice tag — plays automatically before every preview ──
@@ -596,6 +718,205 @@
     playingId = null;
     playingPhase = null;
     renderBeats();
+  }
+
+  // ── MINI MASTERING ──────────────────────────────────
+  let masterOriginalUrl = null;
+  let masterMasteredUrl = null;
+  let masterMode = 'original';
+  let masterIsPlaying = false;
+
+  async function handleMasterUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const status = document.getElementById('masterStatus');
+    const controls = document.getElementById('masterControls');
+    controls.classList.remove('visible');
+    status.textContent = 'Decoding audio...';
+
+    try {
+      // Clean up any previous blob URLs
+      if (masterOriginalUrl) URL.revokeObjectURL(masterOriginalUrl);
+      if (masterMasteredUrl) URL.revokeObjectURL(masterMasteredUrl);
+
+      masterOriginalUrl = URL.createObjectURL(file);
+
+      const arrayBuffer = await file.arrayBuffer();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const decoded = await ctx.decodeAudioData(arrayBuffer);
+
+      status.textContent = 'Applying mini master (EQ, comp, limiter)...';
+      const masteredBuffer = await renderMiniMaster(decoded);
+
+      status.textContent = 'Encoding...';
+      const wavBlob = audioBufferToWavBlob(masteredBuffer);
+      masterMasteredUrl = URL.createObjectURL(wavBlob);
+
+      document.getElementById('masterDownloadLink').href = masterMasteredUrl;
+      const safeName = file.name.replace(/\.[^/.]+$/, '') || 'track';
+      document.getElementById('masterDownloadLink').download = `${safeName}-mastered.wav`;
+
+      // Set up the shared audio element with the original by default
+      const audio = document.getElementById('masterAudioPlayer');
+      audio.src = masterOriginalUrl;
+      masterMode = 'original';
+      document.getElementById('btnOriginal').classList.add('active');
+      document.getElementById('btnMastered').classList.remove('active');
+
+      status.textContent = '✓ Ready — toggle Original / Mastered below';
+      controls.classList.add('visible');
+    } catch (err) {
+      console.error(err);
+      status.textContent = 'Could not process this file — try a different mp3/wav.';
+    }
+  }
+
+  async function renderMiniMaster(decodedBuffer) {
+    const offlineCtx = new OfflineAudioContext(
+      decodedBuffer.numberOfChannels,
+      decodedBuffer.length,
+      decodedBuffer.sampleRate
+    );
+
+    const source = offlineCtx.createBufferSource();
+    source.buffer = decodedBuffer;
+
+    // High-pass — remove sub rumble
+    const highpass = offlineCtx.createBiquadFilter();
+    highpass.type = 'highpass';
+    highpass.frequency.value = 30;
+
+    // Low shelf — subtle warmth
+    const lowShelf = offlineCtx.createBiquadFilter();
+    lowShelf.type = 'lowshelf';
+    lowShelf.frequency.value = 120;
+    lowShelf.gain.value = 1.5;
+
+    // Presence bump
+    const presence = offlineCtx.createBiquadFilter();
+    presence.type = 'peaking';
+    presence.frequency.value = 3000;
+    presence.Q.value = 1.0;
+    presence.gain.value = 1.5;
+
+    // Air — high shelf
+    const air = offlineCtx.createBiquadFilter();
+    air.type = 'highshelf';
+    air.frequency.value = 10000;
+    air.gain.value = 1.2;
+
+    // Glue compressor
+    const comp = offlineCtx.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.knee.value = 6;
+    comp.ratio.value = 3;
+    comp.attack.value = 0.01;
+    comp.release.value = 0.25;
+
+    // Limiter (fast, high-ratio compressor as a soft brickwall)
+    const limiter = offlineCtx.createDynamicsCompressor();
+    limiter.threshold.value = -1.5;
+    limiter.knee.value = 1;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.001;
+    limiter.release.value = 0.05;
+
+    // Makeup gain — bring up perceived loudness
+    const makeup = offlineCtx.createGain();
+    makeup.gain.value = 1.6;
+
+    source.connect(highpass);
+    highpass.connect(lowShelf);
+    lowShelf.connect(presence);
+    presence.connect(air);
+    air.connect(comp);
+    comp.connect(limiter);
+    limiter.connect(makeup);
+    makeup.connect(offlineCtx.destination);
+
+    source.start(0);
+    return await offlineCtx.startRendering();
+  }
+
+  function audioBufferToWavBlob(buffer) {
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const numFrames = buffer.length;
+    const bytesPerSample = 2;
+    const blockAlign = numChannels * bytesPerSample;
+    const dataSize = numFrames * blockAlign;
+
+    const arrayBuffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(arrayBuffer);
+
+    function writeString(offset, str) {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    const channels = [];
+    for (let c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+
+    let offset = 44;
+    for (let i = 0; i < numFrames; i++) {
+      for (let c = 0; c < numChannels; c++) {
+        let sample = Math.max(-1, Math.min(1, channels[c][i]));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset += 2;
+      }
+    }
+
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+  }
+
+  function setMasterMode(mode) {
+    if (mode === masterMode) return;
+    const audio = document.getElementById('masterAudioPlayer');
+    const wasPlaying = !audio.paused;
+    const t = audio.currentTime;
+
+    masterMode = mode;
+    audio.src = mode === 'original' ? masterOriginalUrl : masterMasteredUrl;
+    audio.currentTime = t;
+    if (wasPlaying) audio.play();
+
+    document.getElementById('btnOriginal').classList.toggle('active', mode === 'original');
+    document.getElementById('btnMastered').classList.toggle('active', mode === 'mastered');
+  }
+
+  function toggleMasterPlay() {
+    const audio = document.getElementById('masterAudioPlayer');
+    const btn = document.getElementById('masterPlayBtn');
+    if (audio.paused) {
+      audio.play();
+      btn.textContent = '⏸';
+    } else {
+      audio.pause();
+      btn.textContent = '▶';
+    }
+  }
+
+  function updateMasterTimeLabel() {
+    const audio = document.getElementById('masterAudioPlayer');
+    const lbl = document.getElementById('masterTimeLabel');
+    if (!lbl) return;
+    lbl.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 0)}`;
   }
 
   // Init
