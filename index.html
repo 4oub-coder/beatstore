@@ -285,6 +285,16 @@
     .master-intensity-btn.active {
       border-color: #f0d060; color: #f0d060; background: #f0d06012;
     }
+    .master-system-btn {
+      background: transparent; border: 1px solid #2a4a7a; border-radius: 14px;
+      color: #4a6a8a; font-size: 10px; letter-spacing: 1px;
+      padding: 4px 12px; cursor: pointer;
+      font-family: 'Courier New', monospace; transition: all 0.2s;
+    }
+    .master-system-btn:hover { border-color: #e8323e; color: #e8323e; }
+    .master-system-btn.active {
+      border-color: #e8323e; color: #e8323e; background: #e8323e12;
+    }
     .master-playbar {
       display: flex; align-items: center; gap: 12px; justify-content: center;
     }
@@ -336,9 +346,38 @@
       .beats-section { padding: 24px 16px; }
       .beats-grid { grid-template-columns: 1fr; }
     }
+    /* Basic copy deterrents — not real security, just friction */
+    body {
+      -webkit-user-select: none; -moz-user-select: none;
+      -ms-user-select: none; user-select: none;
+    }
+    /* Still allow selecting/copying inside inputs (file names etc.) */
+    input, textarea { user-select: text; }
   </style>
 </head>
 <body>
+<script>
+  // ── Copy deterrents ──────────────────────────────────
+  // Note: this raises friction for casual copying, it does NOT make
+  // the source code inaccessible — nothing client-side truly can.
+  document.addEventListener('contextmenu', e => e.preventDefault());
+
+  document.addEventListener('keydown', e => {
+    const key = e.key.toLowerCase();
+    // F12
+    if (e.key === 'F12') e.preventDefault();
+    // Ctrl/Cmd+Shift+I / J / C (devtools panels)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].includes(key)) e.preventDefault();
+    // Ctrl/Cmd+U (view source)
+    if ((e.ctrlKey || e.metaKey) && key === 'u') e.preventDefault();
+    // Ctrl/Cmd+S (save page)
+    if ((e.ctrlKey || e.metaKey) && key === 's') e.preventDefault();
+  });
+
+  console.log('%c✋ Hold up.', 'font-size:20px;font-weight:bold;color:#f0d060;');
+  console.log('%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.', 'font-size:12px;color:#6a9ac8;');
+</script>
+
 
 <header>
   <div>
@@ -434,6 +473,15 @@
         <button class="master-intensity-btn" data-val="subtle" onclick="setMasterIntensity('subtle')">Subtle</button>
         <button class="master-intensity-btn active" data-val="standard" onclick="setMasterIntensity('standard')">Standard</button>
         <button class="master-intensity-btn" data-val="loud" onclick="setMasterIntensity('loud')">Loud</button>
+      </div>
+      <div class="master-intensity" id="masterSystemRow">
+        <span class="master-intensity-label">HEAR IT ON</span>
+        <button class="master-system-btn active" data-val="none" onclick="setMasterSystem('none')">None</button>
+        <button class="master-system-btn" data-val="club" onclick="setMasterSystem('club')">🏟 Club</button>
+        <button class="master-system-btn" data-val="car" onclick="setMasterSystem('car')">🚗 Car</button>
+        <button class="master-system-btn" data-val="phone" onclick="setMasterSystem('phone')">📱 Phone</button>
+        <button class="master-system-btn" data-val="earbuds" onclick="setMasterSystem('earbuds')">🎧 Earbuds</button>
+        <button class="master-system-btn" data-val="laptop" onclick="setMasterSystem('laptop')">💻 Laptop</button>
       </div>
       <div class="master-toggle">
         <button class="master-toggle-btn active" id="btnOriginal" onclick="setMasterMode('original')">ORIGINAL</button>
@@ -758,6 +806,7 @@
   let masterMasteredUrl = null;
   let masterMode = 'original';
   let masterIntensity = 'standard';
+  let masterSystem = 'none';
   let masterDecodedBuffer = null;
   let masterFileName = 'track';
   let masterUnlocked = false;
@@ -803,10 +852,52 @@
     }
   }
 
+  const SYSTEM_EQ_PROFILES = {
+    none: [],
+    club: [
+      { type: 'lowshelf', freq: 100, gain: 5 },
+      { type: 'peaking',  freq: 60,  gain: 3, Q: 1.2 },
+      { type: 'peaking',  freq: 800, gain: -2, Q: 1.0 },
+      { type: 'highshelf',freq: 8000, gain: 2 },
+    ],
+    car: [
+      { type: 'highpass', freq: 55 },
+      { type: 'peaking',  freq: 150,  gain: 4, Q: 1.0 },
+      { type: 'peaking',  freq: 2000, gain: 1, Q: 1.0 },
+      { type: 'highshelf',freq: 8000, gain: -2 },
+    ],
+    phone: [
+      { type: 'highpass', freq: 300 },
+      { type: 'peaking',  freq: 2500, gain: 6, Q: 1.2 },
+      { type: 'highshelf',freq: 8000, gain: -6 },
+    ],
+    earbuds: [
+      { type: 'lowshelf', freq: 150, gain: 2 },
+      { type: 'highshelf',freq: 10000, gain: 1 },
+    ],
+    laptop: [
+      { type: 'highpass', freq: 200 },
+      { type: 'peaking',  freq: 2000, gain: 4, Q: 1.0 },
+      { type: 'highshelf',freq: 9000, gain: -4 },
+    ],
+  };
+
+  function buildSystemFilters(offlineCtx, systemKey) {
+    const specs = SYSTEM_EQ_PROFILES[systemKey] || [];
+    return specs.map(spec => {
+      const f = offlineCtx.createBiquadFilter();
+      f.type = spec.type;
+      f.frequency.value = spec.freq;
+      if (spec.gain !== undefined) f.gain.value = spec.gain;
+      if (spec.Q !== undefined) f.Q.value = spec.Q;
+      return f;
+    });
+  }
+
   async function processAndSetMastered() {
     const status = document.getElementById('masterStatus');
     status.textContent = 'Applying mini master (EQ, comp, limiter)...';
-    const masteredBuffer = await renderMiniMaster(masterDecodedBuffer, masterIntensity);
+    const masteredBuffer = await renderMiniMaster(masterDecodedBuffer, masterIntensity, masterSystem);
 
     status.textContent = 'Encoding...';
     if (masterMasteredUrl) URL.revokeObjectURL(masterMasteredUrl);
@@ -845,6 +936,34 @@
     document.getElementById('masterStatus').textContent = '✓ Ready — toggle Original / Mastered below';
   }
 
+  async function setMasterSystem(val) {
+    if (val === masterSystem || !masterDecodedBuffer) {
+      masterSystem = val;
+      document.querySelectorAll('.master-system-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.val === val));
+      return;
+    }
+    masterSystem = val;
+    document.querySelectorAll('.master-system-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.val === val));
+    resetMasterUnlock();
+
+    const audio = document.getElementById('masterAudioPlayer');
+    const wasPlaying = !audio.paused;
+    const t = audio.currentTime;
+    const wasMasteredMode = masterMode === 'mastered';
+
+    document.getElementById('masterStatus').textContent = 'Applying system emulation...';
+    await processAndSetMastered();
+
+    if (wasMasteredMode) {
+      audio.src = masterMasteredUrl;
+      audio.currentTime = t;
+      if (wasPlaying) audio.play();
+    }
+    document.getElementById('masterStatus').textContent = '✓ Ready — toggle Original / Mastered below';
+  }
+
   function resetMasterUnlock() {
     masterUnlocked = false;
     document.getElementById('masterDownloadLink').style.display = 'none';
@@ -863,7 +982,7 @@
     document.getElementById('masterDownloadLink').style.display = 'inline-block';
   }
 
-  async function renderMiniMaster(decodedBuffer, intensity) {
+  async function renderMiniMaster(decodedBuffer, intensity, systemKey) {
     // Presets per intensity — limiter stays fixed (safety), everything
     // else scales how "hot" and dynamic-reduced the result feels
     const PRESETS = {
@@ -926,6 +1045,19 @@
     const makeup = offlineCtx.createGain();
     makeup.gain.value = p.makeup;
 
+    // Optional system emulation (Club/Car/Phone/Earbuds/Laptop) — applied
+    // to the finished master, simulating how it translates on that system
+    const systemFilters = buildSystemFilters(offlineCtx, systemKey);
+
+    // Safety limiter — system EQ can add gain back in, this keeps the
+    // final output from clipping again after that coloration
+    const safetyLimiter = offlineCtx.createDynamicsCompressor();
+    safetyLimiter.threshold.value = -4.0;
+    safetyLimiter.knee.value = 0;
+    safetyLimiter.ratio.value = 20;
+    safetyLimiter.attack.value = 0.0005;
+    safetyLimiter.release.value = 0.05;
+
     source.connect(highpass);
     highpass.connect(lowShelf);
     lowShelf.connect(presence);
@@ -933,10 +1065,39 @@
     air.connect(comp);
     comp.connect(makeup);
     makeup.connect(limiter);
-    limiter.connect(offlineCtx.destination);
+
+    // Chain any system filters in series after the limiter, then the
+    // safety limiter, then destination
+    let lastNode = limiter;
+    for (const f of systemFilters) {
+      lastNode.connect(f);
+      lastNode = f;
+    }
+    lastNode.connect(safetyLimiter);
+    safetyLimiter.connect(offlineCtx.destination);
 
     source.start(0);
-    return await offlineCtx.startRendering();
+    const rendered = await offlineCtx.startRendering();
+
+    // Final hard safety net — scan for true peak, normalize down if
+    // anything still slipped past the limiters (belt and suspenders)
+    let truePeak = 0;
+    for (let ch = 0; ch < rendered.numberOfChannels; ch++) {
+      const data = rendered.getChannelData(ch);
+      for (let i = 0; i < data.length; i++) {
+        const abs = Math.abs(data[i]);
+        if (abs > truePeak) truePeak = abs;
+      }
+    }
+    if (truePeak > 0.97) {
+      const scale = 0.97 / truePeak;
+      for (let ch = 0; ch < rendered.numberOfChannels; ch++) {
+        const data = rendered.getChannelData(ch);
+        for (let i = 0; i < data.length; i++) data[i] *= scale;
+      }
+    }
+
+    return rendered;
   }
 
   function audioBufferToWavBlob(buffer) {
