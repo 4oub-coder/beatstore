@@ -267,6 +267,24 @@
       transition: all 0.2s;
     }
     .master-toggle-btn.active { background: #f0d060; color: #0a0a14; font-weight: bold; }
+
+    .master-intensity {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .master-intensity-label {
+      font-size: 9px; color: #2a4a7a; letter-spacing: 2px; margin-right: 4px;
+    }
+    .master-intensity-btn {
+      background: transparent; border: 1px solid #2a4a7a; border-radius: 14px;
+      color: #4a6a8a; font-size: 10px; letter-spacing: 1px;
+      padding: 4px 12px; cursor: pointer;
+      font-family: 'Courier New', monospace; transition: all 0.2s;
+    }
+    .master-intensity-btn:hover { border-color: #6a9ac8; color: #6a9ac8; }
+    .master-intensity-btn.active {
+      border-color: #f0d060; color: #f0d060; background: #f0d06012;
+    }
     .master-playbar {
       display: flex; align-items: center; gap: 12px; justify-content: center;
     }
@@ -411,6 +429,12 @@
     <div class="master-status" id="masterStatus"></div>
 
     <div class="master-controls" id="masterControls">
+      <div class="master-intensity" id="masterIntensity">
+        <span class="master-intensity-label">INTENSITY</span>
+        <button class="master-intensity-btn" data-val="subtle" onclick="setMasterIntensity('subtle')">Subtle</button>
+        <button class="master-intensity-btn active" data-val="standard" onclick="setMasterIntensity('standard')">Standard</button>
+        <button class="master-intensity-btn" data-val="loud" onclick="setMasterIntensity('loud')">Loud</button>
+      </div>
       <div class="master-toggle">
         <button class="master-toggle-btn active" id="btnOriginal" onclick="setMasterMode('original')">ORIGINAL</button>
         <button class="master-toggle-btn" id="btnMastered" onclick="setMasterMode('mastered')">MASTERED</button>
@@ -419,7 +443,11 @@
         <button class="master-play-btn" id="masterPlayBtn" onclick="toggleMasterPlay()">▶</button>
         <span class="master-status" id="masterTimeLabel">0:00 / 0:00</span>
       </div>
-      <a class="master-download" id="masterDownloadLink" href="#" download="mastered.wav">⬇ DOWNLOAD MASTERED WAV</a>
+      <a class="master-download" id="masterDownloadLink" href="#" download="mastered.wav" style="display:none;">⬇ DOWNLOAD MASTERED WAV</a>
+      <button class="master-download" id="masterUnlockBtn" onclick="unlockMasterDownload()"
+              style="background:none;border:none;cursor:pointer;font-family:'Courier New',monospace;">
+        🔒 UNLOCK DOWNLOAD — <span id="masterPriceLabel">€7</span>
+      </button>
     </div>
 
     <p class="master-disclaimer">
@@ -721,10 +749,18 @@
   }
 
   // ── MINI MASTERING ──────────────────────────────────
+  // TODO: paste your Gumroad link here once the product (with
+  // Subtle/Standard/Loud versions) is set up
+  const GUMROAD_MASTER_URL = "";
+  const MASTER_PRICES = { subtle: "€5", standard: "€7", loud: "€10" };
+
   let masterOriginalUrl = null;
   let masterMasteredUrl = null;
   let masterMode = 'original';
-  let masterIsPlaying = false;
+  let masterIntensity = 'standard';
+  let masterDecodedBuffer = null;
+  let masterFileName = 'track';
+  let masterUnlocked = false;
 
   async function handleMasterUpload(event) {
     const file = event.target.files[0];
@@ -734,6 +770,8 @@
     const controls = document.getElementById('masterControls');
     controls.classList.remove('visible');
     status.textContent = 'Decoding audio...';
+    resetMasterUnlock();
+    document.getElementById('masterPriceLabel').textContent = MASTER_PRICES[masterIntensity];
 
     try {
       // Clean up any previous blob URLs
@@ -741,22 +779,14 @@
       if (masterMasteredUrl) URL.revokeObjectURL(masterMasteredUrl);
 
       masterOriginalUrl = URL.createObjectURL(file);
+      masterFileName = file.name.replace(/\.[^/.]+$/, '') || 'track';
 
       const arrayBuffer = await file.arrayBuffer();
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       const ctx = new AudioCtx();
-      const decoded = await ctx.decodeAudioData(arrayBuffer);
+      masterDecodedBuffer = await ctx.decodeAudioData(arrayBuffer);
 
-      status.textContent = 'Applying mini master (EQ, comp, limiter)...';
-      const masteredBuffer = await renderMiniMaster(decoded);
-
-      status.textContent = 'Encoding...';
-      const wavBlob = audioBufferToWavBlob(masteredBuffer);
-      masterMasteredUrl = URL.createObjectURL(wavBlob);
-
-      document.getElementById('masterDownloadLink').href = masterMasteredUrl;
-      const safeName = file.name.replace(/\.[^/.]+$/, '') || 'track';
-      document.getElementById('masterDownloadLink').download = `${safeName}-mastered.wav`;
+      await processAndSetMastered();
 
       // Set up the shared audio element with the original by default
       const audio = document.getElementById('masterAudioPlayer');
@@ -773,7 +803,76 @@
     }
   }
 
-  async function renderMiniMaster(decodedBuffer) {
+  async function processAndSetMastered() {
+    const status = document.getElementById('masterStatus');
+    status.textContent = 'Applying mini master (EQ, comp, limiter)...';
+    const masteredBuffer = await renderMiniMaster(masterDecodedBuffer, masterIntensity);
+
+    status.textContent = 'Encoding...';
+    if (masterMasteredUrl) URL.revokeObjectURL(masterMasteredUrl);
+    const wavBlob = audioBufferToWavBlob(masteredBuffer);
+    masterMasteredUrl = URL.createObjectURL(wavBlob);
+
+    document.getElementById('masterDownloadLink').href = masterMasteredUrl;
+    document.getElementById('masterDownloadLink').download = `${masterFileName}-mastered.wav`;
+  }
+
+  async function setMasterIntensity(val) {
+    document.getElementById('masterPriceLabel').textContent = MASTER_PRICES[val];
+    if (val === masterIntensity || !masterDecodedBuffer) {
+      masterIntensity = val;
+      document.querySelectorAll('.master-intensity-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.val === val));
+      return;
+    }
+    masterIntensity = val;
+    document.querySelectorAll('.master-intensity-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.val === val));
+    resetMasterUnlock();
+
+    const audio = document.getElementById('masterAudioPlayer');
+    const wasPlaying = !audio.paused;
+    const t = audio.currentTime;
+    const wasMasteredMode = masterMode === 'mastered';
+
+    await processAndSetMastered();
+
+    if (wasMasteredMode) {
+      audio.src = masterMasteredUrl;
+      audio.currentTime = t;
+      if (wasPlaying) audio.play();
+    }
+    document.getElementById('masterStatus').textContent = '✓ Ready — toggle Original / Mastered below';
+  }
+
+  function resetMasterUnlock() {
+    masterUnlocked = false;
+    document.getElementById('masterDownloadLink').style.display = 'none';
+    document.getElementById('masterUnlockBtn').style.display = 'inline-block';
+  }
+
+  function unlockMasterDownload() {
+    // No backend on this static site, so payment can't be verified
+    // automatically — this opens the Gumroad checkout and reveals the
+    // download link on trust, same pattern many small creators use.
+    if (GUMROAD_MASTER_URL) {
+      window.open(GUMROAD_MASTER_URL, '_blank');
+    }
+    masterUnlocked = true;
+    document.getElementById('masterUnlockBtn').style.display = 'none';
+    document.getElementById('masterDownloadLink').style.display = 'inline-block';
+  }
+
+  async function renderMiniMaster(decodedBuffer, intensity) {
+    // Presets per intensity — limiter stays fixed (safety), everything
+    // else scales how "hot" and dynamic-reduced the result feels
+    const PRESETS = {
+      subtle:   { warmth: 1.0, presenceGain: 1.0, airGain: 0.8, compRatio: 2.0, compThresh: -20, makeup: 1.25 },
+      standard: { warmth: 1.5, presenceGain: 1.5, airGain: 1.2, compRatio: 3.0, compThresh: -18, makeup: 1.6  },
+      loud:     { warmth: 2.0, presenceGain: 2.2, airGain: 1.8, compRatio: 4.5, compThresh: -16, makeup: 2.0  },
+    };
+    const p = PRESETS[intensity] || PRESETS.standard;
+
     const offlineCtx = new OfflineAudioContext(
       decodedBuffer.numberOfChannels,
       decodedBuffer.length,
@@ -792,32 +891,32 @@
     const lowShelf = offlineCtx.createBiquadFilter();
     lowShelf.type = 'lowshelf';
     lowShelf.frequency.value = 120;
-    lowShelf.gain.value = 1.5;
+    lowShelf.gain.value = p.warmth;
 
     // Presence bump
     const presence = offlineCtx.createBiquadFilter();
     presence.type = 'peaking';
     presence.frequency.value = 3000;
     presence.Q.value = 1.0;
-    presence.gain.value = 1.5;
+    presence.gain.value = p.presenceGain;
 
     // Air — high shelf
     const air = offlineCtx.createBiquadFilter();
     air.type = 'highshelf';
     air.frequency.value = 10000;
-    air.gain.value = 1.2;
+    air.gain.value = p.airGain;
 
     // Glue compressor
     const comp = offlineCtx.createDynamicsCompressor();
-    comp.threshold.value = -18;
+    comp.threshold.value = p.compThresh;
     comp.knee.value = 6;
-    comp.ratio.value = 3;
+    comp.ratio.value = p.compRatio;
     comp.attack.value = 0.01;
     comp.release.value = 0.25;
 
-    // Limiter (fast, high-ratio compressor as a soft brickwall)
+    // Limiter (fast, high-ratio compressor as a soft brickwall) — fixed for safety
     const limiter = offlineCtx.createDynamicsCompressor();
-    limiter.threshold.value = -1.5;
+    limiter.threshold.value = -3.0;
     limiter.knee.value = 1;
     limiter.ratio.value = 20;
     limiter.attack.value = 0.001;
@@ -825,16 +924,16 @@
 
     // Makeup gain — bring up perceived loudness
     const makeup = offlineCtx.createGain();
-    makeup.gain.value = 1.6;
+    makeup.gain.value = p.makeup;
 
     source.connect(highpass);
     highpass.connect(lowShelf);
     lowShelf.connect(presence);
     presence.connect(air);
     air.connect(comp);
-    comp.connect(limiter);
-    limiter.connect(makeup);
-    makeup.connect(offlineCtx.destination);
+    comp.connect(makeup);
+    makeup.connect(limiter);
+    limiter.connect(offlineCtx.destination);
 
     source.start(0);
     return await offlineCtx.startRendering();
