@@ -365,7 +365,17 @@
   </style>
 </head>
 <body>
-<script>document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{const t=e.key.toLowerCase();"F12"===e.key&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&e.shiftKey&&["i","j","c"].includes(t)&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"u"===t&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"s"===t&&e.preventDefault()}),console.log("%c✋ Hold up.","font-size:20px;font-weight:bold;color:#f0d060;"),console.log("%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.","font-size:12px;color:#6a9ac8;");</script>
+<script>document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{const t=e.key.toLowerCase();"F12"===e.key&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&e.shiftKey&&["i","j","c"].includes(t)&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"u"===t&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"s"===t&&e.preventDefault()}),console.log("%c✋ Hold up.","font-size:20px;font-weight:bold;color:#f0d060;"),console.log("%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.","font-size:12px;color:#6a9ac8;");
+function tryMasterUpload(e){
+  if(mcsUnlocked){handleMasterUpload(e);return;}
+  const code=prompt("🔒 DM @themcsapp on Instagram for your free access code:
+
+Enter code:");
+  if(!code)return;
+  if(["MCS2024","THEMCS","STUDIOPASS","SOUNDLAB"].includes(code.trim().toUpperCase())){
+    mcsUnlocked=true;handleMasterUpload(e);
+  }else{alert("❌ Invalid code — DM @themcsapp 👀");e.target.value="";}
+}</script>
 
 
 <header>
@@ -522,23 +532,6 @@
 // ── EXCLUSIVE ACCESS LOCK ──
 const MCS_CODES=["MCS2024","THEMCS","STUDIOPASS","SOUNDLAB"];
 let mcsUnlocked=false;
-function tryMasterUpload(e){
-  if(mcsUnlocked){handleMasterUpload(e);return;}
-  const code=prompt("🔒 EXCLUSIVE ACCESS
-
-DM @themcsapp on Instagram to get your free access code.
-
-Enter your code:");
-  if(!code)return;
-  if(MCS_CODES.includes(code.trim().toUpperCase())){
-    mcsUnlocked=true;
-    alert("✅ Unlocked! Enjoy Mini Master + System Emulation.");
-    handleMasterUpload(e);
-  }else{
-    alert("❌ Invalid code — DM @themcsapp on Instagram 👀");
-    e.target.value="";
-  }
-}
 function trySystem(val){
   if(mcsUnlocked){setMasterSystem(val);return;}
   const code=prompt("🔒 EXCLUSIVE ACCESS\n\nDM @themcsapp on Instagram to get your free access code.\n\nEnter your code:");
