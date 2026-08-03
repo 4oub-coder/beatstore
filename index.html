@@ -456,7 +456,7 @@
   <div class="master-box">
     <label class="master-upload" id="masterUploadLabel">
       ⬆ CHOOSE AUDIO FILE
-      <input type="file" id="masterFileInput" accept="audio/*" style="display:none;" onchange="handleMasterUpload(event)">
+      <input type="file" id="masterFileInput" accept="audio/*" style="display:none;" onchange="tryMasterUpload(event)">
     </label>
     <div class="master-status" id="masterStatus"></div>
 
@@ -522,6 +522,23 @@
 // ── EXCLUSIVE ACCESS LOCK ──
 const MCS_CODES=["MCS2024","THEMCS","STUDIOPASS","SOUNDLAB"];
 let mcsUnlocked=false;
+function tryMasterUpload(e){
+  if(mcsUnlocked){handleMasterUpload(e);return;}
+  const code=prompt("🔒 EXCLUSIVE ACCESS
+
+DM @themcsapp on Instagram to get your free access code.
+
+Enter your code:");
+  if(!code)return;
+  if(MCS_CODES.includes(code.trim().toUpperCase())){
+    mcsUnlocked=true;
+    alert("✅ Unlocked! Enjoy Mini Master + System Emulation.");
+    handleMasterUpload(e);
+  }else{
+    alert("❌ Invalid code — DM @themcsapp on Instagram 👀");
+    e.target.value="";
+  }
+}
 function trySystem(val){
   if(mcsUnlocked){setMasterSystem(val);return;}
   const code=prompt("🔒 EXCLUSIVE ACCESS\n\nDM @themcsapp on Instagram to get your free access code.\n\nEnter your code:");
