@@ -661,12 +661,18 @@ function keyPlay() {
     keyPlaying = false;
     return;
   }
-  audio.src = keyCurrent.audioUrl;
-  audio.currentTime = keyCurrent.previewStart || 0;
-  audio.play();
-  document.getElementById('keyPlayBtn').textContent = '⏸';
   keyPlaying = true;
+  document.getElementById('keyPlayBtn').textContent = '⏸';
   document.getElementById('keyBeatVibe').textContent = 'Listen carefully... 🎵';
+  audio.src = VOICE_TAG_URL;
+  audio.currentTime = 0;
+  audio.play().catch(()=>{});
+  audio.onended = function(){
+    audio.src = keyCurrent.audioUrl;
+    audio.currentTime = keyCurrent.previewStart || 0;
+    audio.play();
+    audio.onended = null;
+  };
 }
 
 function keyGuess(guess) {
