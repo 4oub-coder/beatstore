@@ -365,7 +365,29 @@
   </style>
 </head>
 <body>
-<script>document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{const t=e.key.toLowerCase();"F12"===e.key&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&e.shiftKey&&["i","j","c"].includes(t)&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"u"===t&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"s"===t&&e.preventDefault()}),console.log("%c✋ Hold up.","font-size:20px;font-weight:bold;color:#f0d060;"),console.log("%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.","font-size:12px;color:#6a9ac8;");</script>
+<script>document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{const t=e.key.toLowerCase();"F12"===e.key&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&e.shiftKey&&["i","j","c"].includes(t)&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"u"===t&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"s"===t&&e.preventDefault()}),console.log("%c✋ Hold up.","font-size:20px;font-weight:bold;color:#f0d060;"),console.log("%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.","font-size:12px;color:#6a9ac8;");
+// ── AMBIENT BACKGROUND ────────────────────────────
+const ambientAudio = new Audio('https://github.com/4oub-coder/beatstore/raw/refs/heads/main/7-08v5_auto_mastered_+1st.mp3');
+ambientAudio.loop = true;
+ambientAudio.volume = 0.08;
+
+// Start ambient after 2 seconds
+setTimeout(() => {
+  ambientAudio.play().catch(() => {});
+}, 2000);
+
+// Stop ambient when preview plays, resume when stopped
+const origTogglePlay = togglePlay;
+window.togglePlay = function(id) {
+  ambientAudio.pause();
+  origTogglePlay(id);
+};
+
+// Resume ambient when audio player ends
+document.getElementById('audioPlayer').addEventListener('ended', () => {
+  setTimeout(() => ambientAudio.play().catch(() => {}), 1000);
+});
+</script>
 
 
 <header>
