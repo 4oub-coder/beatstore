@@ -370,8 +370,12 @@
 const ambientAudio = new Audio('https://github.com/4oub-coder/beatstore/raw/refs/heads/main/7-08v5_auto_mastered_+1st.mp3');
 ambientAudio.loop = false;
 ambientAudio.volume = 0.06;
-// Stop after 30 seconds
-setTimeout(() => { ambientAudio.pause(); ambientAudio.currentTime = 0; }, 30000);
+// Stop after 30 seconds then restart after 10 seconds silence
+setTimeout(() => { 
+  ambientAudio.pause(); 
+  ambientAudio.currentTime = 0;
+  setTimeout(() => { ambientAudio.play().catch(()=>{}); }, 10000);
+}, 30000);
 // Voice tag at 10 seconds and 22 seconds
 setTimeout(() => {
   const t1 = new Audio(VOICE_TAG_URL); t1.volume = 0.15; t1.play().catch(()=>{});
