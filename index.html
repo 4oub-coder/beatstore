@@ -368,8 +368,17 @@
 <script>document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{const t=e.key.toLowerCase();"F12"===e.key&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&e.shiftKey&&["i","j","c"].includes(t)&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"u"===t&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"s"===t&&e.preventDefault()}),console.log("%c✋ Hold up.","font-size:20px;font-weight:bold;color:#f0d060;"),console.log("%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.","font-size:12px;color:#6a9ac8;");
 // ── AMBIENT BACKGROUND ────────────────────────────
 const ambientAudio = new Audio('https://github.com/4oub-coder/beatstore/raw/refs/heads/main/7-08v5_auto_mastered_+1st.mp3');
-ambientAudio.loop = true;
-ambientAudio.volume = 0.08;
+ambientAudio.loop = false;
+ambientAudio.volume = 0.06;
+// Stop after 30 seconds
+setTimeout(() => { ambientAudio.pause(); ambientAudio.currentTime = 0; }, 30000);
+// Voice tag at 10 seconds and 22 seconds
+setTimeout(() => {
+  const t1 = new Audio(VOICE_TAG_URL); t1.volume = 0.15; t1.play().catch(()=>{});
+}, 10000);
+setTimeout(() => {
+  const t2 = new Audio(MID_TAG_URL); t2.volume = 0.12; t2.play().catch(()=>{});
+}, 22000);
 
 // Start ambient on first user interaction
 let ambientStarted = false;
