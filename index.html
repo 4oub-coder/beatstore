@@ -371,10 +371,16 @@ const ambientAudio = new Audio('https://github.com/4oub-coder/beatstore/raw/refs
 ambientAudio.loop = true;
 ambientAudio.volume = 0.08;
 
-// Start ambient after 2 seconds
-setTimeout(() => {
-  ambientAudio.play().catch(() => {});
-}, 2000);
+// Start ambient on first user interaction
+let ambientStarted = false;
+function startAmbient() {
+  if (!ambientStarted) {
+    ambientStarted = true;
+    ambientAudio.play().catch(() => {});
+  }
+}
+document.addEventListener('click', startAmbient, { once: true });
+document.addEventListener('touchstart', startAmbient, { once: true });
 
 // Stop ambient when preview plays, resume when stopped
 const origTogglePlay = togglePlay;
