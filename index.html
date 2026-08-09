@@ -10,14 +10,6 @@
 -->
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HWPME0ZHPH"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-HWPME0ZHPH');
-  </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Beat Store — @themcsapp</title>
@@ -374,6 +366,32 @@
 </head>
 <body>
 <script>document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{const t=e.key.toLowerCase();"F12"===e.key&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&e.shiftKey&&["i","j","c"].includes(t)&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"u"===t&&e.preventDefault(),(e.ctrlKey||e.metaKey)&&"s"===t&&e.preventDefault()}),console.log("%c✋ Hold up.","font-size:20px;font-weight:bold;color:#f0d060;"),console.log("%cThis site and its tools are original work by @themcsapp. Copying the code does not copy the catalogue, the brand, or the audience — build your own.","font-size:12px;color:#6a9ac8;");
+
+// ── AMBIENT BACKGROUND ──
+const ambientAudio = new Audio('https://github.com/4oub-coder/beatstore/raw/refs/heads/main/BACKGROUND.mp3');
+ambientAudio.loop = true;
+ambientAudio.volume = 0.07;
+let ambientStarted = false;
+function startAmbient() {
+  if (!ambientStarted) {
+    ambientStarted = true;
+    ambientAudio.play().catch(() => {});
+  }
+}
+document.addEventListener('click', startAmbient, { once: true });
+document.addEventListener('touchstart', startAmbient, { once: true });
+
+// ── MID TAGS op creatieve momenten ──
+setTimeout(() => {
+  const t = new Audio(MID_TAG_URL);
+  t.volume = 0.12;
+  t.play().catch(() => {});
+}, 16000);
+setTimeout(() => {
+  const t = new Audio(MID_TAG_URL);
+  t.volume = 0.10;
+  t.play().catch(() => {});
+}, 38000);
 </script>
 
 
