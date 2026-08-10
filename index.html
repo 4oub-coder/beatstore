@@ -10,9 +10,32 @@
 -->
 <html lang="en">
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HWPME0ZHPH"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HWPME0ZHPH');
+  </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Beat Store — @themcsapp</title>
+  <title>Beat Store — Dark House, Cinematic & R&B Instrumentals | @themcsapp</title>
+  <meta name="description" content="Original instrumentals for singers, rappers & artists — dark house, cinematic, R&B, and pop beats. Instant preview, MP3/WAV lease or exclusive rights. Mastered instrumentals by @themcsapp."/>
+  <meta name="keywords" content="beat store, instrumentals, dark house beats, cinematic beats, R&B instrumentals, rap beats, beat lease, exclusive beats"/>
+  <link rel="canonical" href="https://themcsapp.com/"/>
+
+  <!-- Open Graph — how the link looks when shared on WhatsApp, Twitter/X, Discord, etc -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="Beat Store — Dark House, Cinematic & R&B Instrumentals"/>
+  <meta property="og:description" content="Original instrumentals for singers, rappers & artists. Instant preview, MP3/WAV lease or exclusive rights."/>
+  <meta property="og:url" content="https://themcsapp.com/"/>
+  <meta property="og:site_name" content="@themcsapp"/>
+
+  <!-- Twitter/X card -->
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Beat Store — Dark House, Cinematic & R&B Instrumentals"/>
+  <meta name="twitter:description" content="Original instrumentals for singers, rappers & artists. Instant preview, MP3/WAV lease or exclusive rights."/>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -351,6 +374,27 @@
     }
     .mcs-promo-link:hover { border-color: #f0d060; }
 
+    /* Email capture — subtle, matches the mcs-promo styling */
+    .email-capture {
+      text-align: center; padding: 20px 20px 24px;
+      border-bottom: 1px solid #1a3060;
+    }
+    .email-capture-title {
+      font-size: 13px; color: #f0d060; letter-spacing: 2px;
+      margin-bottom: 6px; font-weight: bold;
+    }
+    .email-capture-sub {
+      font-size: 11px; color: #4a6a9a; letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+    .email-capture-btn {
+      display: inline-block; font-size: 12px; color: #0a0e1a;
+      background: #f0d060; padding: 10px 24px; border-radius: 4px;
+      text-decoration: none; letter-spacing: 2px; font-weight: bold;
+      transition: background 0.2s;
+    }
+    .email-capture-btn:hover { background: #ffe090; }
+
     @media (max-width: 600px) {
       .hero-title { font-size: 40px; }
       header { padding: 16px 20px; }
@@ -412,6 +456,12 @@ setTimeout(() => {
   <p class="hero-sub">For singers · Rappers · Artists</p>
   <p class="hero-note">Professional instrumentals — made with <a href="https://businb.gumroad.com/l/qlupcx" target="_blank">MCS Pro</a></p>
 </section>
+
+<div class="email-capture">
+  <p class="email-capture-title">🎁 Get a free instrumental</p>
+  <p class="email-capture-sub">Join the list — new drops + one free beat, no spam</p>
+  <a class="email-capture-btn" href="https://forms.gle/REPLACE_WITH_YOUR_GOOGLE_FORM_ID" target="_blank">Get My Free Beat →</a>
+</div>
 
 <div class="filter-bar" id="filterBar">
   <button class="filter-btn active" onclick="setFilter('All', this)">All</button>
