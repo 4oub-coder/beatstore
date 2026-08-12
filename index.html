@@ -690,7 +690,7 @@ setTimeout(() => {
 </div>
 
 <script>
-const VAULT_PASSWORD = "OnlyformenotforyouMcS50";
+const VAULT_PASSWORD_B64 = "T25seWZvcm1lbm90Zm9yeW91TWNTNTA=";
 function openVault(){
   document.getElementById("vaultOverlay").classList.add("open");
 }
@@ -703,7 +703,7 @@ function closeVault(){
 }
 function checkVault(){
   const input = document.getElementById("vaultPassword").value;
-  if(input === VAULT_PASSWORD){
+  if(input === atob(VAULT_PASSWORD_B64)){
     document.getElementById("vaultLocked").style.display = "none";
     document.getElementById("vaultUnlocked").classList.add("show");
   } else {
