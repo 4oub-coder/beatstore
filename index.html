@@ -374,6 +374,49 @@
     }
     .mcs-promo-link:hover { border-color: #f0d060; }
 
+    /* Secret vault — password-gated download link */
+    .vault-trigger {
+      font-size: 10px; color: #2a3a5a; letter-spacing: 1px;
+      cursor: pointer; transition: color 0.2s; user-select: none;
+    }
+    .vault-trigger:hover { color: #4a6a9a; }
+    .vault-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(5,8,15,0.9);
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    .vault-overlay.open { display: flex; }
+    .vault-box {
+      background: #0d1220; border: 1px solid #2a3a5a; border-radius: 10px;
+      padding: 28px; max-width: 360px; width: 90%; text-align: center;
+    }
+    .vault-box h3 { color: #f0d060; font-size: 14px; letter-spacing: 2px; margin-bottom: 14px; }
+    .vault-box input {
+      width: 100%; padding: 10px 12px; background: #05080f; border: 1px solid #2a3a5a;
+      border-radius: 5px; color: #e8eef8; font-size: 13px; margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    .vault-box button {
+      width: 100%; padding: 10px; background: #f0d060; color: #0a0e1a; border: none;
+      border-radius: 5px; font-size: 12px; letter-spacing: 1.5px; font-weight: bold;
+      cursor: pointer; margin-bottom: 8px;
+    }
+    .vault-close { color: #4a6a9a; font-size: 11px; cursor: pointer; }
+    .vault-error { color: #e88080; font-size: 11px; margin-top: 8px; display: none; }
+    .vault-unlocked { display: none; text-align: left; }
+    .vault-unlocked.show { display: block; }
+    .vault-track-title { color: #f0d060; font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+    .vault-track-vibe { color: #6a8ab0; font-size: 11px; margin-bottom: 10px; }
+    .vault-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .vault-tag {
+      font-size: 10px; color: #8aa0c0; background: #16203a; padding: 3px 9px;
+      border-radius: 10px; letter-spacing: 0.5px;
+    }
+    .vault-download {
+      display: block; text-align: center; background: #f0d060; color: #0a0e1a;
+      padding: 12px; border-radius: 6px; text-decoration: none; font-size: 12px;
+      letter-spacing: 1.5px; font-weight: bold;
+    }
+
     /* Urgent discount banner */
     .urgent-offer {
       text-align: center; padding: 16px 20px;
@@ -622,10 +665,57 @@ setTimeout(() => {
 </div>
 
 <footer>
-  @THEMCSAPP · MADE WITH MCS PRO
+  <span onclick="openVault()" style="cursor:pointer;">©</span> @THEMCSAPP · MADE WITH MCS PRO
 </footer>
 
-<audio id="audioPlayer" onended="handleAudioEnded()" ontimeupdate="updateProgressUI()"></audio>
+<div class="vault-overlay" id="vaultOverlay">
+  <div class="vault-box">
+    <div id="vaultLocked">
+      <h3>🔒 PRIVATE ACCESS</h3>
+      <input type="password" id="vaultPassword" placeholder="Password" onkeydown="if(event.key==='Enter')checkVault()"/>
+      <button onclick="checkVault()">Unlock</button>
+      <div class="vault-error" id="vaultError">Incorrect password</div>
+    </div>
+    <div class="vault-unlocked" id="vaultUnlocked">
+      <div class="vault-track-title">Mysterious</div>
+      <div class="vault-track-vibe">Dark / Mysterious / Freestyle</div>
+      <div class="vault-tags">
+        <span class="vault-tag">Rapper</span>
+        <span class="vault-tag">Freestyle</span>
+      </div>
+      <a class="vault-download" href="https://github.com/4oub-coder/beatstore/raw/refs/heads/main/FREENEW2FINAL.mp3" download target="_blank">⬇ Download Full Track</a>
+    </div>
+    <div class="vault-close" onclick="closeVault()" style="margin-top:14px;">Close</div>
+  </div>
+</div>
+
+<script>
+const VAULT_PASSWORD = "OnlyformenotforyouMcS50";
+function openVault(){
+  document.getElementById("vaultOverlay").classList.add("open");
+}
+function closeVault(){
+  document.getElementById("vaultOverlay").classList.remove("open");
+  document.getElementById("vaultPassword").value = "";
+  document.getElementById("vaultError").style.display = "none";
+  document.getElementById("vaultLocked").style.display = "block";
+  document.getElementById("vaultUnlocked").classList.remove("show");
+}
+function checkVault(){
+  const input = document.getElementById("vaultPassword").value;
+  if(input === VAULT_PASSWORD){
+    document.getElementById("vaultLocked").style.display = "none";
+    document.getElementById("vaultUnlocked").classList.add("show");
+  } else {
+    document.getElementById("vaultError").style.display = "block";
+  }
+}
+if(window.location.hash === "#vault"){
+  openVault();
+}
+</script>
+
+<audio id="audioPlayer" onended="handleAudioEnded()" ontimeupdate="updateProgressUI()"></audio></audio>
 <audio id="midTagPlayer"></audio>
 <audio id="masterAudioPlayer"
        ontimeupdate="updateMasterTimeLabel()"
