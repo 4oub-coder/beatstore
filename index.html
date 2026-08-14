@@ -374,6 +374,40 @@
     }
     .mcs-promo-link:hover { border-color: #f0d060; }
 
+    /* Drum Kit video popup */
+    .kit-popup-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(5,8,15,0.92);
+      z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .kit-popup-overlay.open { display: flex; }
+    .kit-popup-box {
+      background: #0d1220; border: 1px solid #f0d060; border-radius: 10px;
+      padding: 24px; max-width: 480px; width: 100%; text-align: center;
+      box-shadow: 0 0 40px rgba(240,208,96,0.15);
+    }
+    .kit-popup-title {
+      font-size: 15px; color: #f0d060; letter-spacing: 2px; font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .kit-popup-sub {
+      font-size: 11px; color: #6a8ab0; letter-spacing: 0.5px; margin-bottom: 16px;
+    }
+    .kit-popup-video {
+      width: 100%; border-radius: 6px; margin-bottom: 16px; display: block;
+      background: #000;
+    }
+    .kit-popup-cta {
+      display: inline-block; background: #f0d060; color: #0a0e1a; font-weight: bold;
+      letter-spacing: 1.5px; font-size: 12px; padding: 12px 28px; border-radius: 6px;
+      text-decoration: none; margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+    .kit-popup-cta:hover { background: #ffe090; }
+    .kit-popup-close {
+      display: block; color: #4a6a9a; font-size: 11px; cursor: pointer;
+      margin-top: 4px;
+    }
+
     /* Urgent discount banner */
     .urgent-offer {
       text-align: center; padding: 16px 20px;
@@ -620,6 +654,30 @@ setTimeout(() => {
   <p class="mcs-promo-sub">The music production toolkit behind these beats.</p>
   <a class="mcs-promo-link" href="https://businb.gumroad.com/l/qlupcx/INMCSWETRUST" target="_blank">Get MCS →</a>
 </div>
+
+<div class="kit-popup-overlay" id="kitPopupOverlay">
+  <div class="kit-popup-box">
+    <div class="kit-popup-title">🥁 NEW DRUM KIT</div>
+    <div class="kit-popup-sub">Made with MCS Pro — check it out</div>
+    <video class="kit-popup-video" src="https://github.com/4oub-coder/beatstore/raw/refs/heads/main/KIT.mp4"
+           autoplay muted loop playsinline></video>
+    <a class="kit-popup-cta" href="https://businb.gumroad.com/l/qlupcx/INMCSWETRUST" target="_blank">Get The Kit →</a>
+    <span class="kit-popup-close" onclick="closeKitPopup()">No thanks</span>
+  </div>
+</div>
+
+<script>
+function closeKitPopup(){
+  document.getElementById("kitPopupOverlay").classList.remove("open");
+  localStorage.setItem("kitPopupSeen", "1");
+}
+// Show once per visitor, a few seconds after the page loads
+if (!localStorage.getItem("kitPopupSeen")) {
+  setTimeout(function(){
+    document.getElementById("kitPopupOverlay").classList.add("open");
+  }, 4000);
+}
+</script>
 
 <footer>
   @THEMCSAPP · MADE WITH MCS PRO
