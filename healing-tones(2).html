@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healing Tones — free by MCS</title>
+<meta name="description" content="Solfeggio frequencies and binaural beats. Generated live, exact to the Hz. A free tool from MCS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #06080d;
+    --surface:   #0e131f;
+    --surface-2: #141a29;
+    --line:      #1c2436;
+    --teal:      #7dd8c9;
+    --teal-dim:  #3d6c64;
+    --amber:     #d4a574;
+    --text:      #e8ecf1;
+    --text-dim:  #5c6780;
+    --text-mute: #3a4258;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px 32px;
+  }
+
+  /* ambient grain/vignette */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 900px 700px at 50% 30%, rgba(125,216,201,0.05), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 50% 100%, rgba(212,165,116,0.04), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; width: 100%; max-width: 460px; }
+
+  header { text-align: center; margin-bottom: 40px; }
+
+  .eyebrow {
+    font-size: 10px; letter-spacing: 3px; color: var(--text-mute);
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 34px;
+    letter-spacing: 0.3px;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: normal;
+    font-weight: 500;
+    color: var(--teal);
+  }
+
+  .sub {
+    font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px;
+    margin-top: 10px; line-height: 1.6;
+  }
+
+  /* ── the breathing circle — driven by real audio analysis ── */
+  .stage {
+    position: relative;
+    width: 260px; height: 260px;
+    margin: 8px auto 28px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  canvas#viz {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
+  .stage-core {
+    position: relative;
+    width: 132px; height: 132px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, rgba(125,216,201,0.16), rgba(14,19,31,0.9) 70%);
+    border: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: box-shadow 0.4s ease;
+    box-shadow: 0 0 0 rgba(125,216,201,0);
+  }
+
+  .stage-core.playing {
+    box-shadow: 0 0 46px rgba(125,216,201,0.22);
+  }
+
+  .freq-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .freq-unit {
+    font-size: 10px; color: var(--teal); letter-spacing: 2px;
+    margin-top: 6px;
+  }
+
+  /* ── mode toggle ── */
+  .mode-row {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 26px;
+  }
+
+  .mode-btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 9px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mode-btn:hover { border-color: var(--teal-dim); color: var(--text); }
+
+  .mode-btn.active {
+    background: rgba(125,216,201,0.1);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+
+  /* ── panel ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+
+  .panel-label {
+    font-size: 10px; letter-spacing: 2px; color: var(--text-mute);
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+
+  /* solfeggio grid */
+  .freq-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .freq-cell {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .freq-cell:hover { border-color: var(--teal-dim); }
+
+  .freq-cell.active {
+    border-color: var(--teal);
+    background: rgba(125,216,201,0.08);
+  }
+
+  .freq-cell .hz { font-size: 15px; font-weight: 700; color: var(--text); }
+  .freq-cell .meaning {
+    font-size: 8px; color: var(--text-dim); letter-spacing: 0.3px;
+    margin-top: 4px; line-height: 1.3; min-height: 20px;
+  }
+
+  /* binaural controls */
+  .wave-list { display: flex; flex-direction: column; gap: 7px; }
+
+  .wave-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .wave-row:hover { border-color: var(--teal-dim); }
+
+  .wave-row.active { border-color: var(--teal); background: rgba(125,216,201,0.08); }
+
+  .wave-row .name { font-size: 11px; color: var(--text); letter-spacing: 0.3px; }
+  .wave-row .range { font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+  .wave-row .hz-tag { font-size: 12px; font-weight: 700; color: var(--teal); }
+
+  .carrier-row {
+    display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    padding-top: 14px; border-top: 1px solid var(--line);
+  }
+
+  .carrier-row label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; }
+
+  input[type="number"] {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--teal);
+    font-family: inherit; font-weight: 700; font-size: 13px;
+    width: 64px; padding: 6px 8px; border-radius: 6px; text-align: center;
+  }
+  input[type="number"]:focus { outline: none; border-color: var(--teal); }
+
+  /* duration + texture */
+  .row-split { display: flex; gap: 8px; }
+  .dur-btn {
+    flex: 1;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: inherit; font-size: 11px;
+    padding: 9px 0; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .dur-btn.active { border-color: var(--teal); color: var(--teal); background: rgba(125,216,201,0.08); }
+
+  .texture-toggle {
+    display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    padding-top: 14px; border-top: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .switch {
+    width: 34px; height: 19px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    position: relative; transition: all 0.2s ease; flex-shrink: 0;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--text-dim); transition: all 0.2s ease;
+  }
+  .switch.on { background: rgba(125,216,201,0.15); border-color: var(--teal-dim); }
+  .switch.on::after { left: 17px; background: var(--teal); }
+  .texture-toggle span { font-size: 10px; color: var(--text-dim); letter-spacing: 0.3px; }
+
+  /* ── actions ── */
+  .actions { display: flex; gap: 10px; margin-top: 22px; }
+
+  .btn {
+    flex: 1;
+    font-family: inherit; font-size: 12px; letter-spacing: 1px;
+    padding: 14px 0; border-radius: 10px; cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  .btn-play {
+    background: var(--teal); color: #06121a; font-weight: 700;
+  }
+  .btn-play:hover { background: #8fe0d3; }
+  .btn-play.stop { background: var(--surface-2); color: var(--teal); border-color: var(--teal); }
+
+  .btn-dl {
+    background: transparent; color: var(--text-dim); border-color: var(--line);
+  }
+  .btn-dl:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn-dl:disabled { opacity: 0.35; cursor: default; }
+  .btn-dl:disabled:hover { color: var(--text-dim); border-color: var(--line); }
+
+  .status {
+    text-align: center; font-size: 10px; color: var(--text-mute);
+    margin-top: 12px; min-height: 14px; letter-spacing: 0.3px;
+  }
+
+  /* ── footer promo ── */
+  footer {
+    margin-top: 44px; padding-top: 22px;
+    border-top: 1px solid var(--line);
+    width: 100%; max-width: 460px;
+    text-align: center;
+  }
+
+  footer p {
+    font-size: 10px; color: var(--text-mute); letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  footer a {
+    color: var(--amber);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(212,165,116,0.35);
+    font-size: 11px; letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+  }
+
+  footer a:hover { color: #e8bd8f; border-color: #e8bd8f; }
+
+  /* ── why MCS ── */
+  .why-mcs {
+    width: 100%; max-width: 460px;
+    margin-top: 44px; padding: 26px 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+
+  .why-tagline {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 17px;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  .why-cta {
+    display: block; text-align: center;
+    margin-top: 6px;
+  }
+
+  @media (max-width: 480px) {
+    .stage { width: 220px; height: 220px; }
+    h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">FREE · BY MCS</div>
+    <h1>Healing <em>Tones</em></h1>
+    <p class="sub">Solfeggio frequencies and binaural beats,<br>generated live and exact to the Hz.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="viz" width="260" height="260"></canvas>
+    <div class="stage-core" id="stageCore">
+      <div class="freq-number" id="freqDisplay">528</div>
+      <div class="freq-unit">HZ</div>
+    </div>
+  </div>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="modeSolf" onclick="setMode('solfeggio')">SOLFEGGIO</button>
+    <button class="mode-btn" id="modeBin" onclick="setMode('binaural')">BINAURAL</button>
+  </div>
+
+  <div class="panel" id="panelSolf">
+    <div class="panel-label">Frequency</div>
+    <div class="freq-grid" id="solfGrid"></div>
+  </div>
+
+  <div class="panel" id="panelBin" style="display:none;">
+    <div class="panel-label">Brainwave State</div>
+    <div class="wave-list" id="waveList"></div>
+    <div class="carrier-row">
+      <label>CARRIER</label>
+      <input type="number" id="carrierInput" value="200" min="60" max="500">
+      <label>HZ</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">Duration</div>
+    <div class="row-split" id="durRow"></div>
+    <div class="texture-toggle" onclick="toggleTexture()">
+      <div class="switch on" id="textureSwitch"></div>
+      <span>Soft texture underneath</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-play" id="playBtn" onclick="togglePlay()">▶&nbsp;&nbsp;PLAY</button>
+    <button class="btn btn-dl" id="dlBtn" onclick="downloadTone()">⬇ WAV</button>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="why-mcs">
+    <p class="why-tagline">Full production toolkit — one-time purchase.</p>
+    <div class="why-cta">
+      <a href="https://businb.gumroad.com/l/qlupcx/INMCSWETRUST" target="_blank">See what MCS can do →</a>
+    </div>
+  </div>
+
+  <footer>
+    <p>MADE WITH MCS PRO</p>
+    <a href="https://businb.gumroad.com/l/qlupcx/INMCSWETRUST" target="_blank">Get MCS →</a>
+  </footer>
+</div>
+
+<script>
+const SOLFEGGIO = [
+  [396, "Grounding"], [417, "Change"], [528, "Transformation"],
+  [639, "Connection"], [741, "Intuition"], [852, "Awareness"], [963, "—"]
+];
+const BRAINWAVES = [
+  ["Delta", "0.5–4Hz · Deep Sleep", 2],
+  ["Theta", "4–8Hz · Meditation", 6],
+  ["Alpha", "8–13Hz · Relaxation", 10],
+  ["Beta", "13–30Hz · Focus", 18],
+  ["Gamma", "30–50Hz · Alertness", 40],
+];
+const DURATIONS = [30, 60, 180, 300];
+
+let mode = "solfeggio";
+let solfFreq = 528;
+let beatHz = 6;
+let carrier = 200;
+let duration = 60;
+let addTexture = true;
+
+let audioCtx = null, isPlaying = false;
+let oscL, oscR, gainL, gainR, merger, analyser, pinkNode;
+let rafId = null;
+
+// ---- build UI lists ----
+const solfGrid = document.getElementById('solfGrid');
+SOLFEGGIO.forEach(([hz, label]) => {
+  const cell = document.createElement('div');
+  cell.className = 'freq-cell' + (hz === solfFreq ? ' active' : '');
+  cell.id = 'solf-' + hz;
+  cell.innerHTML = `<div class="hz">${hz}</div><div class="meaning">${label}</div>`;
+  cell.onclick = () => selectSolf(hz);
+  solfGrid.appendChild(cell);
+});
+
+const waveList = document.getElementById('waveList');
+BRAINWAVES.forEach(([name, range, hz]) => {
+  const row = document.createElement('div');
+  row.className = 'wave-row' + (hz === beatHz ? ' active' : '');
+  row.id = 'wave-' + hz;
+  row.innerHTML = `<div><div class="name">${name}</div><div class="range">${range}</div></div><div class="hz-tag">${hz}Hz</div>`;
+  row.onclick = () => selectWave(hz);
+  waveList.appendChild(row);
+});
+
+const durRow = document.getElementById('durRow');
+DURATIONS.forEach(d => {
+  const btn = document.createElement('div');
+  btn.className = 'dur-btn' + (d === duration ? ' active' : '');
+  btn.id = 'dur-' + d;
+  btn.textContent = d < 60 ? d + 's' : (d/60) + 'min';
+  btn.onclick = () => selectDuration(d);
+  durRow.appendChild(btn);
+});
+
+function selectSolf(hz) {
+  document.getElementById('solf-' + solfFreq).classList.remove('active');
+  solfFreq = hz;
+  document.getElementById('solf-' + hz).classList.add('active');
+  updateFreqDisplay();
+  if (isPlaying) restartTone();
+}
+function selectWave(hz) {
+  document.getElementById('wave-' + beatHz).classList.remove('active');
+  beatHz = hz;
+  document.getElementById('wave-' + hz).classList.add('active');
+  updateFreqDisplay();
+  if (isPlaying) restartTone();
+}
+function selectDuration(d) {
+  document.getElementById('dur-' + duration).classList.remove('active');
+  duration = d;
+  document.getElementById('dur-' + d).classList.add('active');
+}
+function toggleTexture() {
+  addTexture = !addTexture;
+  document.getElementById('textureSwitch').classList.toggle('on', addTexture);
+  if (isPlaying) restartTone();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeSolf').classList.toggle('active', m === 'solfeggio');
+  document.getElementById('modeBin').classList.toggle('active', m === 'binaural');
+  document.getElementById('panelSolf').style.display = m === 'solfeggio' ? 'block' : 'none';
+  document.getElementById('panelBin').style.display = m === 'binaural' ? 'block' : 'none';
+  updateFreqDisplay();
+  if (isPlaying) restartTone();
+}
+
+function updateFreqDisplay() {
+  document.getElementById('freqDisplay').textContent = mode === 'solfeggio' ? solfFreq : beatHz;
+  document.querySelector('.freq-unit').textContent = mode === 'solfeggio' ? 'HZ' : 'HZ BEAT';
+}
+
+document.getElementById('carrierInput').addEventListener('change', (e) => {
+  const v = parseFloat(e.target.value);
+  carrier = (v > 0 && v < 1000) ? v : 200;
+  e.target.value = carrier;
+  if (isPlaying && mode === 'binaural') restartTone();
+});
+
+// ---- audio engine ----
+function buildGraph() {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  merger = audioCtx.createChannelMerger(2);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 512;
+  merger.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  if (mode === 'solfeggio') {
+    oscL = audioCtx.createOscillator();
+    oscL.type = 'sine';
+    oscL.frequency.value = solfFreq;
+    gainL = audioCtx.createGain();
+    gainL.gain.value = 0;
+    oscL.connect(gainL);
+    gainL.connect(merger, 0, 0);
+    gainL.connect(merger, 0, 1);
+    oscL.start();
+    rampGain(gainL, 0.22, 1.2);
+  } else {
+    oscL = audioCtx.createOscillator();
+    oscL.type = 'sine';
+    oscL.frequency.value = carrier;
+    gainL = audioCtx.createGain();
+    gainL.gain.value = 0;
+    oscL.connect(gainL);
+    gainL.connect(merger, 0, 0);
+    oscL.start();
+
+    oscR = audioCtx.createOscillator();
+    oscR.type = 'sine';
+    oscR.frequency.value = carrier + beatHz;
+    gainR = audioCtx.createGain();
+    gainR.gain.value = 0;
+    oscR.connect(gainR);
+    gainR.connect(merger, 0, 1);
+    oscR.start();
+
+    rampGain(gainL, 0.18, 1.2);
+    rampGain(gainR, 0.18, 1.2);
+  }
+
+  if (addTexture) {
+    const bufferSize = 2 * audioCtx.sampleRate;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let b0=0,b1=0,b2=0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99*b0 + white*0.03;
+      b1 = 0.98*b1 + white*0.02;
+      b2 = 0.95*b2 + white*0.01;
+      output[i] = (b0+b1+b2) * 0.35;
+    }
+    pinkNode = audioCtx.createBufferSource();
+    pinkNode.buffer = noiseBuffer;
+    pinkNode.loop = true;
+    const pinkGain = audioCtx.createGain();
+    pinkGain.gain.value = 0.025;
+    pinkNode.connect(pinkGain);
+    pinkGain.connect(merger, 0, 0);
+    pinkGain.connect(merger, 0, 1);
+    pinkNode.start();
+  }
+}
+
+function rampGain(node, target, time) {
+  node.gain.cancelScheduledValues(audioCtx.currentTime);
+  node.gain.setValueAtTime(node.gain.value, audioCtx.currentTime);
+  node.gain.linearRampToValueAtTime(target, audioCtx.currentTime + time);
+}
+
+function teardownGraph() {
+  try {
+    if (oscL) { rampGain(gainL, 0, 0.4); oscL.stop(audioCtx.currentTime + 0.45); }
+    if (oscR) { rampGain(gainR, 0, 0.4); oscR.stop(audioCtx.currentTime + 0.45); }
+    if (pinkNode) pinkNode.stop(audioCtx.currentTime + 0.45);
+  } catch(e) {}
+  setTimeout(() => { if (audioCtx) audioCtx.close(); }, 500);
+}
+
+function togglePlay() {
+  if (isPlaying) {
+    isPlaying = false;
+    document.getElementById('playBtn').classList.remove('stop');
+    document.getElementById('playBtn').innerHTML = '▶&nbsp;&nbsp;PLAY';
+    document.getElementById('stageCore').classList.remove('playing');
+    document.getElementById('status').textContent = '';
+    teardownGraph();
+    cancelAnimationFrame(rafId);
+    clearCanvas();
+  } else {
+    buildGraph();
+    isPlaying = true;
+    document.getElementById('playBtn').classList.add('stop');
+    document.getElementById('playBtn').innerHTML = '■&nbsp;&nbsp;STOP';
+    document.getElementById('stageCore').classList.add('playing');
+    document.getElementById('status').textContent = 'playing — headphones recommended for binaural';
+    drawViz();
+  }
+}
+
+function restartTone() {
+  teardownGraph();
+  setTimeout(() => { if (isPlaying) buildGraph(); }, 500);
+}
+
+// ---- waveform-driven breathing visualization ----
+const canvas = document.getElementById('viz');
+const ctx = canvas.getContext('2d');
+function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+function drawViz() {
+  if (!isPlaying) return;
+  rafId = requestAnimationFrame(drawViz);
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  analyser.getByteTimeDomainData(dataArray);
+
+  let sum = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    const v = (dataArray[i] - 128) / 128;
+    sum += v * v;
+  }
+  const rms = Math.sqrt(sum / bufferLength);
+
+  clearCanvas();
+  const cx = canvas.width/2, cy = canvas.height/2;
+  const baseR = 80;
+  const pulse = baseR + rms * 90;
+
+  for (let ring = 3; ring >= 1; ring--) {
+    const r = pulse + ring * 14;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.strokeStyle = `rgba(125,216,201,${0.09 / ring})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, pulse, 0, Math.PI*2);
+  const grad = ctx.createRadialGradient(cx,cy,pulse*0.7,cx,cy,pulse);
+  grad.addColorStop(0, 'rgba(125,216,201,0)');
+  grad.addColorStop(1, 'rgba(125,216,201,0.25)');
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// ---- WAV export via OfflineAudioContext ----
+async function downloadTone() {
+  const dlBtn = document.getElementById('dlBtn');
+  dlBtn.disabled = true;
+  document.getElementById('status').textContent = 'rendering wav…';
+
+  const sr = 44100;
+  const dur = duration;
+  const offline = new OfflineAudioContext(2, sr * dur, sr);
+  const fadeTime = Math.min(1.5, dur/4);
+
+  if (mode === 'solfeggio') {
+    const osc = offline.createOscillator();
+    osc.type = 'sine'; osc.frequency.value = solfFreq;
+    const g = offline.createGain();
+    g.gain.setValueAtTime(0, 0);
+    g.gain.linearRampToValueAtTime(0.22, fadeTime);
+    g.gain.setValueAtTime(0.22, dur - fadeTime);
+    g.gain.linearRampToValueAtTime(0, dur);
+    const merge = offline.createChannelMerger(2);
+    osc.connect(g); g.connect(merge,0,0); g.connect(merge,0,1);
+    merge.connect(offline.destination);
+    osc.start(); osc.stop(dur);
+  } else {
+    const oscL2 = offline.createOscillator();
+    oscL2.type='sine'; oscL2.frequency.value = carrier;
+    const oscR2 = offline.createOscillator();
+    oscR2.type='sine'; oscR2.frequency.value = carrier + beatHz;
+    const gL = offline.createGain(), gR = offline.createGain();
+    [gL, gR].forEach(g => {
+      g.gain.setValueAtTime(0, 0);
+      g.gain.linearRampToValueAtTime(0.18, fadeTime);
+      g.gain.setValueAtTime(0.18, dur - fadeTime);
+      g.gain.linearRampToValueAtTime(0, dur);
+    });
+    const merge = offline.createChannelMerger(2);
+    oscL2.connect(gL); gL.connect(merge,0,0);
+    oscR2.connect(gR); gR.connect(merge,0,1);
+    merge.connect(offline.destination);
+    oscL2.start(); oscL2.stop(dur);
+    oscR2.start(); oscR2.stop(dur);
+  }
+
+  const rendered = await offline.startRendering();
+  const wavBlob = bufferToWav(rendered);
+  const url = URL.createObjectURL(wavBlob);
+  const a = document.createElement('a');
+  const name = mode === 'solfeggio' ? `MCS_solfeggio_${solfFreq}hz` : `MCS_binaural_${carrier}hz_${beatHz}beat`;
+  a.href = url; a.download = `${name}_${dur}s.wav`;
+  a.click();
+  URL.revokeObjectURL(url);
+  dlBtn.disabled = false;
+  document.getElementById('status').textContent = 'saved ✓';
+  setTimeout(() => { if (!isPlaying) document.getElementById('status').textContent=''; }, 2500);
+}
+
+function bufferToWav(buffer) {
+  const numCh = buffer.numberOfChannels;
+  const length = buffer.length * numCh * 2 + 44;
+  const arrBuf = new ArrayBuffer(length);
+  const view = new DataView(arrBuf);
+  const writeStr = (o,s) => { for (let i=0;i<s.length;i++) view.setUint8(o+i, s.charCodeAt(i)); };
+
+  writeStr(0,'RIFF'); view.setUint32(4, length-8, true); writeStr(8,'WAVE');
+  writeStr(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,1,true);
+  view.setUint16(22,numCh,true); view.setUint32(24,buffer.sampleRate,true);
+  view.setUint32(28,buffer.sampleRate*numCh*2,true); view.setUint16(32,numCh*2,true);
+  view.setUint16(34,16,true); writeStr(36,'data'); view.setUint32(40, buffer.length*numCh*2, true);
+
+  let offset = 44;
+  for (let i=0;i<buffer.length;i++) {
+    for (let ch=0; ch<numCh; ch++) {
+      let s = Math.max(-1, Math.min(1, buffer.getChannelData(ch)[i]));
+      view.setInt16(offset, s < 0 ? s*0x8000 : s*0x7FFF, true);
+      offset += 2;
+    }
+  }
+  return new Blob([arrBuf], {type:'audio/wav'});
+}
+</script>
+</body>
+</html>
