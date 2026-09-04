@@ -548,33 +548,6 @@ function startAmbient() {
 document.addEventListener('click', startAmbient, { once: true });
 document.addEventListener('touchstart', startAmbient, { once: true });
 
-// ── MID-TAG GAIN BOOST ──
-// The mid-track tag plays at the <audio> element's max volume (1.0)
-// already, but that's a ceiling — if the source file itself is
-// recorded quietly, volume=1 can't push it any louder. A GainNode
-// via the Web Audio API CAN go above 1.0. Tested standalone: gain
-// 1.8 correctly boosted a 0.1-amplitude test tone to ~0.18 peak (a
-// genuine 1.8x amplification), confirming this actually adds volume
-// rather than just being a no-op ceiling like the plain volume
-// property.
-let midTagBoostReady = false;
-function setupMidTagBoost() {
-  if (midTagBoostReady) return;
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const ctx = new AudioCtx();
-    const midTagEl = document.getElementById('midTagPlayer');
-    const source = ctx.createMediaElementSource(midTagEl);
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = 1.8;
-    source.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    midTagBoostReady = true;
-  } catch (e) {}
-}
-document.addEventListener('click', setupMidTagBoost, { once: true });
-document.addEventListener('touchstart', setupMidTagBoost, { once: true });
-
 // ── MID TAGS op creatieve momenten ──
 // FIXED: these previously fired on a fixed timer regardless of
 // whether the user was actively listening to a track preview —
