@@ -766,5 +766,15 @@ if (!localStorage.getItem("kitPopupSeen")) {
 
 
 
+
+<script>
+// New track added after the JS obfuscation pass — kept as a
+// separate, readable snippet rather than editing the obfuscated
+// bundle directly, since that risks corrupting the string-array/
+// control-flow encoding. Pushes into the existing BEATS array and
+// re-renders using the same (reserved, non-obfuscated) function names.
+BEATS.push({id:60,title:"Different now",bpm:"—",key:"—",vibe:"Full Track",duration:"—",audioUrl:"https://github.com/4oub-coder/beatstore/raw/refs/heads/main/rapsv3finalv225-05V4202620-09_eqbal.mp3",midTagAt:93.0,previewStart:78.0,leasePrice:35,wavPrice:65,exclusivePrice:500,leaseUrl:"https://businb.gumroad.com/l/iycdjk",wavUrl:"https://businb.gumroad.com/l/vplygf",exclusiveUrl:"",tags:["Singer","Rapper"],available:true});
+if (typeof renderBeats === "function") renderBeats();
+</script>
 </body>
 </html>
